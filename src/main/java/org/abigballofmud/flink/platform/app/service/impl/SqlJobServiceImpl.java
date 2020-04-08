@@ -87,6 +87,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
     @Override
     public SqlJobDTO execute(Long tenantId, Long jobId, Long uploadJarId) {
         SqlJobDTO sqlJobDTO = sqlJobRepository.detail(tenantId, jobId);
+        // 判断当前任务是否正在运行
         // 获取执行sql任务的jar
         UploadJarDTO uploadJarDTO;
         if (Objects.nonNull(uploadJarId)) {
@@ -118,8 +119,17 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
                 .programArgsList(programList)
                 .build());
         // 回写flink_job_id或错误信息
-        sqlJobDTO.setFlinkJobId(jarRunResponseBody.getJobid());
-        sqlJobDTO.setErrors(String.join("\n", jarRunResponseBody.getErrors()));
+        if (CollectionUtils.isEmpty(jarRunResponseBody.getErrors())) {
+            // 正常
+            sqlJobDTO.setErrors("");
+            sqlJobDTO.setJobStatus(CommonConstant.Status.RUNNING);
+            sqlJobDTO.setFlinkJobId(jarRunResponseBody.getJobid());
+        } else {
+            // 异常
+            sqlJobDTO.setFlinkJobId("");
+            sqlJobDTO.setJobStatus(CommonConstant.Status.FAILED);
+            sqlJobDTO.setErrors(String.join("\n", jarRunResponseBody.getErrors()));
+        }
         updateById(SqlJobConvertMapper.INSTANCE.dtoToEntity(sqlJobDTO));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(getById(sqlJobDTO.getJobId()));
     }

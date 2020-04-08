@@ -15,12 +15,16 @@ public class CommonConstant {
     }
 
     public static class Status {
+
+
         private Status() {
             throw new IllegalStateException("constant class");
         }
 
         public static final String UPLOADING = "UPLOADING";
         public static final String UPLOADED = "UPLOADED";
+        public static final String RUNNING = "RUNNING";
+        public static final String FAILED = "FAILED";
     }
 
     /**
