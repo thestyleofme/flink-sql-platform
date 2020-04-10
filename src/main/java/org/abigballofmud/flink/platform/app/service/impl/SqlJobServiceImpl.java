@@ -87,7 +87,11 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
     @Override
     public SqlJobDTO execute(Long tenantId, Long jobId, Long uploadJarId) {
         SqlJobDTO sqlJobDTO = sqlJobRepository.detail(tenantId, jobId);
+        FlinkApi flinkApi = flinkApiContext.get(sqlJobDTO.getClusterCode(), tenantId);
         // 判断当前任务是否正在运行
+        if (sqlJobDTO.getJobStatus().equalsIgnoreCase(CommonConstant.Status.RUNNING)) {
+            throw new FlinkCommonException("this sql job is running, please do not repeat execute!");
+        }
         // 获取执行sql任务的jar
         UploadJarDTO uploadJarDTO;
         if (Objects.nonNull(uploadJarId)) {
@@ -99,7 +103,6 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
                     CommonConstant.JarCode.FLINK_SQL_PLATFORM, sqlJobDTO.getClusterCode(), tenantId);
         }
         // 运行jar
-        FlinkApi flinkApi = flinkApiContext.get(sqlJobDTO.getClusterCode(), tenantId);
         SettingInfo.SqlJobSettingInfo sqlJobSettingInfo;
         if (StringUtils.isEmpty(sqlJobDTO.getSettingInfo())) {
             sqlJobSettingInfo = SettingInfo.SqlJobSettingInfo.builder().build();
