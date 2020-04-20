@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DiskClassLoader extends ClassLoader {
 
-    private String libPath;
+    private final String libPath;
 
     public DiskClassLoader(String path) {
         libPath = path;

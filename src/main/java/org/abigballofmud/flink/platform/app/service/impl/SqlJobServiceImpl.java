@@ -111,7 +111,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         }
         // 二者不能都为空，其一有值即可
         List<String> programList = Stream.of("-w", sqlJobDTO.getSqlUploadPath(),
-                "-f", String.format("%d_%s.sql", sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode()))
+                "-f", String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode()))
                 .collect(Collectors.toList());
         Preconditions.checkAnyNotNull(uploadJarDTO.getEntryClass(), sqlJobSettingInfo.getEntryClass());
         JarRunResponseBody jarRunResponseBody = flinkApi.runJar(JarRunRequest.builder()
@@ -145,7 +145,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         sqlJob.setJobStatus(CommonConstant.Status.UPLOADING);
         sqlJobMapper.insert(sqlJob);
         // 异步上传sql脚本
-        String sqlFileName = String.format("%d_%s.sql", sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
+        String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
         uploadSqlFile(genSqlFile(sqlFileName, sqlJobDTO), sqlFileName, getById(sqlJob.getJobId()));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(sqlJob);
     }
@@ -156,7 +156,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         updateById(sqlJob);
         getById(sqlJob.getJobId());
         // 异步上传sql脚本
-        String sqlFileName = String.format("%d_%s.sql", sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
+        String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
         uploadSqlFile(genSqlFile(sqlFileName, sqlJobDTO), sqlFileName, getById(sqlJob.getJobId()));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(sqlJob);
     }

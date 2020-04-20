@@ -11,8 +11,10 @@ package org.abigballofmud.flink.platform.infra.constants;
 public class CommonConstant {
 
     private CommonConstant() {
-        throw new IllegalStateException("constant class");
+        throw new IllegalStateException();
     }
+
+    public static final String SQL_FILE_NAME = "%d_%s.sql";
 
     public static class Status {
 

@@ -20,7 +20,7 @@ import org.apache.flink.table.functions.TableFunction;
 @Slf4j
 public class FlinkUtil {
 
-    private StreamTableEnvironment tEnv;
+    private final StreamTableEnvironment tEnv;
 
     public FlinkUtil() {
         EnvironmentSettings settings = EnvironmentSettings.newInstance()

@@ -2,10 +2,8 @@ package org.abigballofmud.flink.platform.infra.loader;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 import groovy.lang.GroovyClassLoader;
-import lombok.SneakyThrows;
 import org.codehaus.groovy.control.CompilerConfiguration;
 
 /**
@@ -42,33 +40,6 @@ public class GroovyCompiler {
     public static Class<?> compile(File file) throws IOException {
         GroovyClassLoader loader = getGroovyClassLoader();
         return loader.parseClass(file);
-    }
-
-    @SneakyThrows
-    public static void main(String[] args) {
-        String code = "package org.demo;\n" +
-                "\n" +
-                "/**\n" +
-                " * <p>\n" +
-                " * test classloader\n" +
-                " * </p>\n" +
-                " *\n" +
-                " * @author isacc 2020/03/24 10:18\n" +
-                " * @since 1.0\n" +
-                " */\n" +
-                "public class Test {\n" +
-                "\n" +
-                "    public void say() {\n" +
-                "        System.out.println(\"Hello World\");\n" +
-                "    }\n" +
-                "\n" +
-                "}\n";
-        Class<?> clazz = GroovyCompiler.compile(code, "test");
-        Class<?> aClass = getGroovyClassLoader().loadClass("org.demo.Test");
-        Object obj = clazz.newInstance();
-        System.out.println("after compile: " + obj);
-        Method method = clazz.getDeclaredMethod("say");
-        method.invoke(obj);
     }
 
 }
