@@ -1,8 +1,10 @@
 package org.abigballofmud.flink.platform.app.service.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import javax.annotation.Resource;
@@ -25,6 +27,7 @@ import org.abigballofmud.flink.platform.infra.loader.GroovyCompiler;
 import org.abigballofmud.flink.platform.infra.mapper.UdfMapper;
 import org.abigballofmud.flink.platform.infra.utils.CommonUtil;
 import org.abigballofmud.flink.platform.infra.utils.FlinkUtil;
+import org.apache.commons.io.FileUtils;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,8 +95,15 @@ public class UdfServiceImpl extends ServiceImpl<UdfMapper, Udf> implements UdfSe
     }
 
     private void uploadUdfJar(File file, Udf udf, ClusterDTO clusterDTO) {
+        String fileStr;
+        try {
+            fileStr = FileUtils.readFileToString(file, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.error("udf jar error");
+            throw new IllegalStateException("udf jar error", e);
+        }
         CompletableFuture<Void> allCompletableFuture = CommonUtil.uploadFileToFlinkCluster(
-                clusterDTO.getNodeDTOList(), file,
+                clusterDTO.getNodeDTOList(), fileStr,
                 String.format("%d_%s", udf.getTenantId(), file.getName()),
                 udf.getUdfJarPath(), jasyptStringEncryptor, executorService);
         allCompletableFuture.thenRunAsync(() -> {
