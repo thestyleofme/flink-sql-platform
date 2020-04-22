@@ -1,8 +1,5 @@
 package org.abigballofmud.flink.platform.app.service.impl;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,7 +32,6 @@ import org.abigballofmud.flink.platform.infra.constants.CommonConstant;
 import org.abigballofmud.flink.platform.infra.converter.SqlJobConvertMapper;
 import org.abigballofmud.flink.platform.infra.mapper.SqlJobMapper;
 import org.abigballofmud.flink.platform.infra.utils.CommonUtil;
-import org.apache.commons.io.FileUtils;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -148,7 +144,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         sqlJobMapper.insert(sqlJob);
         // 异步上传sql脚本
         String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
-        uploadSqlFile(genSqlFile(sqlFileName, sqlJobDTO), sqlFileName, getById(sqlJob.getJobId()));
+        uploadSqlFile(sqlFileName, getById(sqlJob.getJobId()));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(sqlJob);
     }
 
@@ -159,22 +155,11 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         getById(sqlJob.getJobId());
         // 异步上传sql脚本
         String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
-        uploadSqlFile(genSqlFile(sqlFileName, sqlJobDTO), sqlFileName, getById(sqlJob.getJobId()));
+        uploadSqlFile(sqlFileName, getById(sqlJob.getJobId()));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(sqlJob);
     }
 
-    private File genSqlFile(String sqlFileName, SqlJobDTO sqlJobDTO) {
-        File sqlFile = new File(sqlFileName);
-        try {
-            FileUtils.writeStringToFile(sqlFile, sqlJobDTO.getContent(), StandardCharsets.UTF_8);
-            return sqlFile;
-        } catch (IOException e) {
-            log.error("write sql content to file error");
-            throw new FlinkCommonException("write sql content to file error", e);
-        }
-    }
-
-    private void uploadSqlFile(File sqlFile, String sqlFileName, SqlJob sqlJob) {
+    private void uploadSqlFile(String sqlFileName, SqlJob sqlJob) {
         // sql文件异步上传到flink cluster
         List<NodeDTO> nodeDTOList =
                 nodeRepository.selectByClusterCode(sqlJob.getClusterCode(), sqlJob.getTenantId());
@@ -182,7 +167,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
             throw new FlinkCommonException("error.find.flink.cluster");
         }
         CompletableFuture<Void> allCompletableFuture = CommonUtil.uploadFileToFlinkCluster(
-                nodeDTOList, sqlFile, sqlFileName,
+                nodeDTOList, sqlJob.getContent(), sqlFileName,
                 sqlJob.getSqlUploadPath(), jasyptStringEncryptor, executorService);
         // 上传完成后更改状态
         allCompletableFuture.thenRunAsync(() -> {
