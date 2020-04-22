@@ -85,7 +85,7 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
      * -f q1.sql
      */
     @Override
-    public SqlJobDTO execute(Long tenantId, Long jobId, Long uploadJarId) {
+    public SqlJobDTO execute(Long tenantId, Long jobId, Long execJarId) {
         SqlJobDTO sqlJobDTO = sqlJobRepository.detail(tenantId, jobId);
         FlinkApi flinkApi = flinkApiContext.get(sqlJobDTO.getClusterCode(), tenantId);
         // 判断当前任务是否正在运行
@@ -94,14 +94,16 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         }
         // 获取执行sql任务的jar
         UploadJarDTO uploadJarDTO;
-        if (Objects.nonNull(uploadJarId)) {
+        if (Objects.nonNull(execJarId)) {
             // 指定jar运行
-            uploadJarDTO = uploadJarRepository.detail(tenantId, uploadJarId);
+            uploadJarDTO = uploadJarRepository.detail(tenantId, execJarId);
         } else {
             // 默认最新版本运行
             uploadJarDTO = uploadJarRepository.findMaxVersionJarByCode(
                     CommonConstant.JarCode.FLINK_SQL_PLATFORM, sqlJobDTO.getClusterCode(), tenantId);
         }
+        // 设置本次执行的jar id
+        sqlJobDTO.setExecJarId(uploadJarDTO.getUploadJarId());
         // 运行jar
         SettingInfo.SqlJobSettingInfo sqlJobSettingInfo;
         if (StringUtils.isEmpty(sqlJobDTO.getSettingInfo())) {

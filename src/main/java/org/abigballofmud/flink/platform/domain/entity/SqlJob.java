@@ -55,6 +55,10 @@ public class SqlJob implements Serializable {
      * 执行sql的状态
      */
     private String jobStatus;
+    /**
+     * 默认最新的flink sql jar也可指定flink sql jar，执行时异步更新
+     */
+    private Long execJarId;
 
 
     private Long tenantId;

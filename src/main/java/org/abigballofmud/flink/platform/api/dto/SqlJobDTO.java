@@ -48,6 +48,7 @@ public class SqlJobDTO implements Serializable {
      */
     private String settingInfo;
     private String errors;
+    private Long execJarId;
 
     @NotBlank
     private String clusterCode;

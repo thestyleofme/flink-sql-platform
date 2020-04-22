@@ -64,8 +64,8 @@ public class SqlJobController {
     @GetMapping("/execute/{jobId}")
     public SqlJobDTO execute(@PathVariable Long tenantId,
                              @PathVariable Long jobId,
-                             @RequestParam(required = false) Long uploadJarId) {
-        return sqlJobService.execute(tenantId, jobId, uploadJarId);
+                             @RequestParam(required = false) Long execJarId) {
+        return sqlJobService.execute(tenantId, jobId, execJarId);
     }
 
 }
