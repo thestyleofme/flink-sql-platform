@@ -65,8 +65,8 @@ public class SqlJob implements Serializable {
     @Version
     private Long objectVersionNumber;
     private LocalDateTime creationDate;
-    private Integer createdBy;
-    private Integer lastUpdatedBy;
+    private Long createdBy;
+    private Long lastUpdatedBy;
     private LocalDateTime lastUpdateDate;
 
 

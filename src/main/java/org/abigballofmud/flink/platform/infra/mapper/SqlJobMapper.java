@@ -1,7 +1,11 @@
 package org.abigballofmud.flink.platform.infra.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import org.abigballofmud.flink.platform.api.dto.SqlJobDTO;
 import org.abigballofmud.flink.platform.domain.entity.SqlJob;
+import org.apache.ibatis.annotations.Param;
 
 /**
  * <p>
@@ -13,4 +17,12 @@ import org.abigballofmud.flink.platform.domain.entity.SqlJob;
  */
 public interface SqlJobMapper extends BaseMapper<SqlJob> {
 
+    /**
+     * 分页查询flink sql任务
+     *
+     * @param page      Page<SqlJob>
+     * @param sqlJobDTO SqlJobDTO
+     * @return IPage<SqlJobDTO>
+     */
+    IPage<SqlJobDTO> list(Page<SqlJob> page, @Param("dto") SqlJobDTO sqlJobDTO);
 }

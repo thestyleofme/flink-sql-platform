@@ -34,14 +34,15 @@ public class SqlJobRepositoryImpl implements SqlJobRepository {
 
     @Override
     public IPage<SqlJobDTO> pageAndSortDTO(SqlJobDTO sqlJobDTO, Page<SqlJob> sqlJobPage) {
-        final QueryWrapper<SqlJob> queryWrapper = this.commonQueryWrapper(sqlJobDTO);
-        Page<SqlJob> entityPage = sqlJobMapper.selectPage(sqlJobPage, queryWrapper);
-        final Page<SqlJobDTO> dtoPage = new Page<>();
-        BeanUtils.copyProperties(entityPage, dtoPage);
-        dtoPage.setRecords(entityPage.getRecords().stream()
-                .map(SqlJobConvertMapper.INSTANCE::entityToDTO)
-                .collect(Collectors.toList()));
-        return dtoPage;
+        return sqlJobMapper.list(sqlJobPage,sqlJobDTO);
+        // final QueryWrapper<SqlJob> queryWrapper = this.commonQueryWrapper(sqlJobDTO);
+        // Page<SqlJob> entityPage = sqlJobMapper.selectPage(sqlJobPage, queryWrapper);
+        // final Page<SqlJobDTO> dtoPage = new Page<>();
+        // BeanUtils.copyProperties(entityPage, dtoPage);
+        // dtoPage.setRecords(entityPage.getRecords().stream()
+        //         .map(SqlJobConvertMapper.INSTANCE::entityToDTO)
+        //         .collect(Collectors.toList()));
+        // return dtoPage;
     }
 
     @Override

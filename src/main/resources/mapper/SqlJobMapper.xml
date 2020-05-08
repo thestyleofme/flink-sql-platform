@@ -21,4 +21,104 @@
         <result column="last_update_date" property="lastUpdateDate" jdbcType="TIMESTAMP"/>
     </resultMap>
 
+    <resultMap id="DTOResultMap" type="org.abigballofmud.flink.platform.api.dto.SqlJobDTO" extends="BaseResultMap">
+        <association property="execJarInfo"
+                     resultMap="com.github.codingdebugallday.client.infra.mapper.UploadJarMapper.BaseJarCommonResultMap"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ${prefix}.job_id,
+        ${prefix}.job_code,
+        ${prefix}.cluster_code,
+        ${prefix}.sql_upload_path,
+        ${prefix}.content,
+        ${prefix}.setting_info,
+        ${prefix}.job_status,
+        ${prefix}.errors,
+        ${prefix}.flink_job_id,
+        ${prefix}.exec_jar_id,
+        ${prefix}.savepoint_path,
+        ${prefix}.tenant_id,
+        ${prefix}.object_version_number,
+        ${prefix}.creation_date,
+        ${prefix}.created_by,
+        ${prefix}.last_updated_by,
+        ${prefix}.last_update_date
+    </sql>
+
+    <sql id="Base_Where_Criteria">
+        <if test="dto.jobCode != null and dto.jobCode != ''">
+            <bind name="jobCodeLike" value='"%"+dto.jobCode+"%"'/>
+            AND ${prefix}.job_code like #{jobCodeLike}
+        </if>
+        <if test="dto.clusterCode != null and dto.clusterCode != ''">
+            <bind name="clusterCodeLike" value='"%"+dto.clusterCode+"%"'/>
+            AND ${prefix}.cluster_code like #{clusterCodeLike}
+        </if>
+        <if test="dto.jobStatus != null and dto.jobStatus != '' ">
+            AND ${prefix}.job_status = #{dto.jobStatus}
+        </if>
+        <if test="dto.flinkJobId != null and dto.flinkJobId != '' ">
+            AND ${prefix}.flink_job_id = #{dto.flinkJobId}
+        </if>
+        <if test="dto.tenantId != null">
+            AND ${prefix}.tenant_id in (0, #{dto.tenantId})
+        </if>
+    </sql>
+
+    <sql id="Base_Jar_Where_Criteria">
+        <if test="dto.execJarId != null">
+            AND ${prefix}.upload_jar_id = #{dto.execJarId}
+        </if>
+        <if test="dto.execJarInfo != null">
+            <if test="dto.execJarInfo.systemProvided != null">
+                AND ${prefix}.system_provided = #{dto.execJarInfo.systemProvided}
+            </if>
+            <if test="dto.execJarInfo.jarName != null and dto.execJarInfo.jarName != ''">
+                <bind name="jarNameLike" value='"%"+dto.execJarInfo.jarName+"%"'/>
+                AND ${prefix}.jar_name like #{jarNameLike}
+            </if>
+            <if test="dto.execJarInfo.jarDesc != null and dto.execJarInfo.jarDesc != ''">
+                <bind name="jarDescLike" value='"%"+dto.execJarInfo.jarDesc+"%"'/>
+                AND ${prefix}.jar_desc like #{jarDescLike}
+            </if>
+            <if test="dto.execJarInfo.jarCode != null and dto.execJarInfo.jarCode != ''">
+                <bind name="jarCodeLike" value='"%"+dto.execJarInfo.jarCode+"%"'/>
+                AND ${prefix}.jar_code like #{jarCodeLike}
+            </if>
+            <if test="dto.execJarInfo.filename != null and dto.execJarInfo.filename != ''">
+                <bind name="filenameLike" value='"%"+dto.execJarInfo.filename+"%"'/>
+                AND ${prefix}.filename like #{filenameLike}
+            </if>
+            <if test="dto.execJarInfo.status != null and dto.execJarInfo.status != ''">
+                <bind name="statusLike" value='"%"+dto.execJarInfo.status+"%"'/>
+                AND ${prefix}.status like #{statusLike}
+            </if>
+        </if>
+    </sql>
+
+    <select id="list" resultMap="DTOResultMap">
+        SELECT
+        <include refid="Base_Column_List">
+            <property name="prefix" value="job"/>
+        </include>
+        ,
+        <include refid="com.github.codingdebugallday.client.infra.mapper.UploadJarMapper.Base_Jar_Common_Column_List">
+            <property name="prefix" value="jar"/>
+        </include>
+        FROM
+        flink_sql_job job
+        LEFT JOIN flink_upload_jar jar ON job.exec_jar_id = jar.upload_jar_id
+        and job.tenant_id = jar.tenant_id
+        <where>
+            2 > 1
+            <include refid="Base_Where_Criteria">
+                <property name="prefix" value="job"/>
+            </include>
+            <include refid="Base_Jar_Where_Criteria">
+                <property name="prefix" value="jar"/>
+            </include>
+        </where>
+    </select>
+
 </mapper>

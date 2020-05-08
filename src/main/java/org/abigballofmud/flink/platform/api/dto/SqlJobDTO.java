@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import javax.validation.constraints.NotBlank;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.github.codingdebugallday.client.domain.entity.UploadJar;
 import lombok.*;
 
 /**
@@ -75,5 +76,7 @@ public class SqlJobDTO implements Serializable {
      * 若是没有传uploadJarId，就去flink_upload_jar找jarCode为_flink_sql_platform的最新的version去执行
      */
     private Long uploadJarId;
+
+    private UploadJar execJarInfo;
 
 }
