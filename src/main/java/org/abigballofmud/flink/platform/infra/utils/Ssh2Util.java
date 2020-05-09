@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.github.codingdebugallday.client.infra.exceptions.FlinkCommonException;
 import com.trilead.ssh2.Connection;
 import com.trilead.ssh2.SCPClient;
+import com.trilead.ssh2.SFTPv3Client;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -52,9 +53,18 @@ public class Ssh2Util implements AutoCloseable {
         }
     }
 
+    public void rm(String fileName) {
+        try {
+            SFTPv3Client sftPv3Client = new SFTPv3Client(connection);
+            sftPv3Client.rm(fileName);
+        } catch (IOException e) {
+            log.error("Delete file from server failed");
+            throw new FlinkCommonException("Delete file from server failed", e);
+        }
+    }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         Optional.ofNullable(connection).ifPresent(Connection::close);
     }
 }

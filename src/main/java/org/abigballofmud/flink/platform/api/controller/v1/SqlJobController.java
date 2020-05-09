@@ -68,4 +68,9 @@ public class SqlJobController {
         return sqlJobService.execute(tenantId, jobId, execJarId);
     }
 
+    @DeleteMapping
+    public void delete(@PathVariable Long tenantId, Long jobId) {
+        sqlJobService.delete(tenantId, jobId);
+    }
+
 }

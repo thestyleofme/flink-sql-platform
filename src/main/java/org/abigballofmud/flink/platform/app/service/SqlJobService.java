@@ -33,10 +33,18 @@ public interface SqlJobService extends IService<SqlJob> {
     /**
      * 执行flink sql任务
      *
-     * @param tenantId    租户id
-     * @param jobId       jobId
+     * @param tenantId  租户id
+     * @param jobId     jobId
      * @param execJarId 指定使用哪个上传的jar去执行sql任务
      * @return org.abigballofmud.flink.platform.api.dto.SqlJobDTO
      */
     SqlJobDTO execute(Long tenantId, Long jobId, Long execJarId);
+
+    /**
+     * 删除非运行状态的flink sql任务
+     *
+     * @param tenantId 租户id
+     * @param jobId    jobId
+     */
+    void delete(Long tenantId, Long jobId);
 }

@@ -1,6 +1,5 @@
 package org.abigballofmud.flink.platform.infra.utils;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -51,13 +50,34 @@ public class CommonUtil {
                     try (Ssh2Util ssh2Util = new Ssh2Util(nodeSettingInfo.getHost(), nodeSettingInfo.getUsername(),
                             jasyptStringEncryptor.decrypt(nodeSettingInfo.getPassword()))) {
                         ssh2Util.upload(sqlContent.getBytes(StandardCharsets.UTF_8), remoteFileName, uploadPath);
-                    } catch (IOException e) {
-                        log.error("file upload to cluster error", e);
-                        return false;
                     }
                     return true;
                 }, executorService)
         );
         return futureTaskWorker.getAllCompletableFuture();
+    }
+
+    /**
+     * 将file从flink cluster中删除
+     *
+     * @param nodeDTOList     flink node list
+     * @param remoteFileName  在服务器上文件的名称
+     * @param stringEncryptor StringEncryptor
+     * @param executorService ExecutorService
+     */
+    public static void deleteFileFromFlinkCluster(List<NodeDTO> nodeDTOList,
+                                                  String remoteFileName,
+                                                  StringEncryptor stringEncryptor,
+                                                  ExecutorService executorService) {
+        new FutureTaskWorker<>(nodeDTOList,
+                nodeDTO -> CompletableFuture.supplyAsync(() -> {
+                    NodeSettingInfo nodeSettingInfo = JSON.toObj(nodeDTO.getSettingInfo(), NodeSettingInfo.class);
+                    try (Ssh2Util ssh2Util = new Ssh2Util(nodeSettingInfo.getHost(), nodeSettingInfo.getUsername(),
+                            stringEncryptor.decrypt(nodeSettingInfo.getPassword()))) {
+                        ssh2Util.rm(remoteFileName);
+                    }
+                    return true;
+                }, executorService)
+        );
     }
 }

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Resource;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.codingdebugallday.client.api.dto.NodeDTO;
 import com.github.codingdebugallday.client.api.dto.UploadJarDTO;
@@ -157,6 +158,33 @@ public class SqlJobServiceImpl extends ServiceImpl<SqlJobMapper, SqlJob> impleme
         String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJobDTO.getTenantId(), sqlJobDTO.getJobCode());
         uploadSqlFile(sqlFileName, getById(sqlJob.getJobId()));
         return SqlJobConvertMapper.INSTANCE.entityToDTO(sqlJob);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void delete(Long tenantId, Long jobId) {
+        // 判断状态是否是非RUNNING
+        SqlJob sqlJob = Optional.ofNullable(this.getOne(new QueryWrapper<>(
+                SqlJob.builder().tenantId(tenantId).jobId(jobId).build()), true))
+                .orElseThrow(() -> new FlinkCommonException("can not find sql job by jobId[" + jobId + "]"));
+        if (CommonConstant.Status.RUNNING.equalsIgnoreCase(sqlJob.getJobStatus())) {
+            throw new FlinkCommonException("this sql job is running, please do not repeat execute!");
+        }
+        // 删除表记录
+        removeById(jobId);
+        // 异步删除服务器上的sql文件
+        String sqlFileName = String.format(CommonConstant.SQL_FILE_NAME, sqlJob.getTenantId(), sqlJob.getJobCode());
+        deleteSqlFile(String.format("%s/%s", sqlJob.getSqlUploadPath(), sqlFileName), sqlJob);
+    }
+
+    private void deleteSqlFile(String sqlFileName, SqlJob sqlJob) {
+        // flink cluster中的sql文件异步删除
+        List<NodeDTO> nodeDTOList =
+                nodeRepository.selectByClusterCode(sqlJob.getClusterCode(), sqlJob.getTenantId());
+        if (CollectionUtils.isEmpty(nodeDTOList)) {
+            throw new FlinkCommonException("error.find.flink.cluster");
+        }
+        CommonUtil.deleteFileFromFlinkCluster(nodeDTOList, sqlFileName, jasyptStringEncryptor, executorService);
     }
 
     private void uploadSqlFile(String sqlFileName, SqlJob sqlJob) {
