@@ -28,6 +28,13 @@ spring:
       max-file-size: 300MB
       max-request-size: 300MB
 
+flink:
+  hive:
+    catalog:
+      name: hdsp-hive
+      defaultDatabase: default
+      version: 3.1.0.3.1.0.0-78
+      confDir: /usr/hdp/3.1.0.0-78/hive/conf
 
 mybatis:
   mapperLocations: classpath*:/mapper/*.xml

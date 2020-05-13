@@ -18,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.abigballofmud.flink.platform.api.dto.UdfDTO;
 import org.abigballofmud.flink.platform.app.service.UdfService;
 import org.abigballofmud.flink.platform.domain.entity.Udf;
+import org.abigballofmud.flink.platform.infra.autoconfigure.FlinkHiveCatalogProperties;
 import org.abigballofmud.flink.platform.infra.constants.CommonConstant;
 import org.abigballofmud.flink.platform.infra.converter.UdfConvertMapper;
 import org.abigballofmud.flink.platform.infra.enums.UdfTypeEnum;
@@ -46,6 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UdfServiceImpl extends ServiceImpl<UdfMapper, Udf> implements UdfService {
 
     private final UdfMapper udfMapper;
+    private final FlinkHiveCatalogProperties flinkHiveCatalogProperties;
     private final ExecutorService executorService = ThreadPoolUtil.getExecutorService();
 
     @Resource
@@ -53,8 +55,10 @@ public class UdfServiceImpl extends ServiceImpl<UdfMapper, Udf> implements UdfSe
     @Resource
     private StringEncryptor jasyptStringEncryptor;
 
-    public UdfServiceImpl(UdfMapper udfMapper) {
+    public UdfServiceImpl(UdfMapper udfMapper,
+                          FlinkHiveCatalogProperties flinkHiveCatalogProperties) {
         this.udfMapper = udfMapper;
+        this.flinkHiveCatalogProperties = flinkHiveCatalogProperties;
     }
 
     @Override
@@ -89,7 +93,7 @@ public class UdfServiceImpl extends ServiceImpl<UdfMapper, Udf> implements UdfSe
             throw new ClassLoaderException("class newInstance error", e);
         }
         // 注册udf
-        FlinkUtil flinkUtil = new FlinkUtil();
+        FlinkUtil flinkUtil = new FlinkUtil(flinkHiveCatalogProperties);
         flinkUtil.registerFunction(udfDTO.getUdfName(), udfObject);
         return UdfConvertMapper.INSTANCE.entityToDTO(udf);
     }

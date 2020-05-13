@@ -2,9 +2,11 @@ package org.abigballofmud.flink.platform.infra.utils;
 
 import com.github.codingdebugallday.client.infra.exceptions.FlinkCommonException;
 import lombok.extern.slf4j.Slf4j;
+import org.abigballofmud.flink.platform.infra.autoconfigure.FlinkHiveCatalogProperties;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.java.StreamTableEnvironment;
+import org.apache.flink.table.catalog.hive.HiveCatalog;
 import org.apache.flink.table.functions.AggregateFunction;
 import org.apache.flink.table.functions.ScalarFunction;
 import org.apache.flink.table.functions.TableFunction;
@@ -20,25 +22,33 @@ import org.apache.flink.table.functions.TableFunction;
 @Slf4j
 public class FlinkUtil {
 
-    private final StreamTableEnvironment tEnv;
+    private final StreamTableEnvironment tableEnv;
 
-    public FlinkUtil() {
+    public FlinkUtil(FlinkHiveCatalogProperties flinkHiveCatalogProperties) {
         EnvironmentSettings settings = EnvironmentSettings.newInstance()
                 .useBlinkPlanner()
                 .inStreamingMode()
                 .build();
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        tEnv = StreamTableEnvironment.create(env, settings);
+        tableEnv = StreamTableEnvironment.create(env, settings);
+        // 为了平台管理udf 集成hive
+        String catalogName = flinkHiveCatalogProperties.getName();
+        HiveCatalog hive = new HiveCatalog(catalogName,
+                flinkHiveCatalogProperties.getDefaultDatabase(),
+                flinkHiveCatalogProperties.getConfDir(),
+                flinkHiveCatalogProperties.getVersion());
+        tableEnv.registerCatalog(catalogName, hive);
+        tableEnv.useCatalog(catalogName);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public void registerFunction(String name, Object function) {
         if (function instanceof TableFunction) {
-            tEnv.registerFunction(name, (TableFunction) function);
+            tableEnv.registerFunction(name, (TableFunction) function);
         } else if (function instanceof AggregateFunction) {
-            tEnv.registerFunction(name, (AggregateFunction) function);
+            tableEnv.registerFunction(name, (AggregateFunction) function);
         } else if (function instanceof ScalarFunction) {
-            tEnv.registerFunction(name, (ScalarFunction) function);
+            tableEnv.registerFunction(name, (ScalarFunction) function);
         } else {
             throw new FlinkCommonException(String.format("Unknown UDF %s was found.", name));
         }

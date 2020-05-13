@@ -1,0 +1,28 @@
+{
+  "properties": [
+    {
+      "name": "flink.hive.catalog.name",
+      "type": "java.lang.String",
+      "defaultValue": "hdsp-dev",
+      "description": "flink HiveCatalog name."
+    },
+    {
+      "name": "flink.hive.catalog.defaultDatabase",
+      "type": "java.lang.String",
+      "defaultValue": "default",
+      "description": "flink HiveCatalog default database."
+    },
+    {
+      "name": "flink.hive.catalog.version",
+      "type": "java.lang.String",
+      "defaultValue": "3.1.0.3.1.0.0-78",
+      "description": "flink Hive version."
+    },
+    {
+      "name": "flink.hive.catalog.confDir",
+      "type": "java.lang.String",
+      "defaultValue": "/usr/hdp/3.1.0.0-78/hive/conf",
+      "description": "flink hive-site.xml path."
+    }
+  ]
+}
